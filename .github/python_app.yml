@@ -1,0 +1,31 @@
+name: Continuous Integration
+
+on:
+ pull_request:
+  braches:
+   - main
+ push:
+
+jobs:
+ executa_linter:
+  runs-on: ubuntu-latest
+  steps:
+   - name: realiza o checkout
+     uses: actions/checkout@v2
+
+   - name: instala o Python 3.9
+     uses: actions/setup-python@v2
+     with:
+        python-version: 3.9
+
+   - name: instala o poetry
+     uses: Gr1N/setup-poetry@v4
+
+   - name: fazer o build
+     uses: poetry build
+
+   - name: package install
+     uses: poetry install
+
+   - name: fazer o build
+     uses: poetry build
