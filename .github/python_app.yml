@@ -21,8 +21,5 @@ jobs:
    - name: instala o poetry
      uses: Gr1N/setup-poetry@v4
 
-   - name: fazer o build
-     uses: poetry build
-
    - name: package install
      uses: poetry install
