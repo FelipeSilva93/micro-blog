@@ -22,4 +22,7 @@ jobs:
      uses: Gr1N/setup-poetry@v4
 
    - name: package install
-     uses: poetry install
+     run: poetry build
+
+   - name: package install
+     run: poetry install
