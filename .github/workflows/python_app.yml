@@ -25,4 +25,4 @@ jobs:
         run: poetry install
 
       - name: Executa o black
-        run: poetry run black --check app
+        run: poetry run black app --check
