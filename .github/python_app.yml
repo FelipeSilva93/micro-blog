@@ -23,3 +23,6 @@ jobs:
 
       - name: Instala as dependencias
         run: poetry install
+
+      - name: Executa o black
+        run: poetry run black --check app
