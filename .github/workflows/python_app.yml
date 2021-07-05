@@ -29,3 +29,6 @@ jobs:
 
       - name: Executa o black
         run: poetry run black app --check
+
+      - name: Executa o isort
+        run: poetry run isort --check app
