@@ -1,0 +1,10 @@
+[default]
+
+
+[development]
+DEBUG = true
+INSTALLED_APPS = [
+    'app.ext.site:init_app',
+]
+
+[production]
