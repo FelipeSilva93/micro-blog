@@ -3,8 +3,14 @@
 
 [development]
 DEBUG = true
+SQLALCHEMY_DATABASE_URI = 'sqlite+pysqlite:///app.db'
+SQLALCHEMY_TRACK_MODIFICATIONS = false
 INSTALLED_APPS = [
+    'app.ext.db:init_app',
+    'app.ext.migrate:init_app',
+    'app.ext.cli:init_app',
     'app.ext.site:init_app',
+
 ]
 
 [production]
