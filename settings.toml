@@ -9,6 +9,7 @@ INSTALLED_APPS = [
     'app.ext.db:init_app',
     'app.ext.migrate:init_app',
     'app.ext.cli:init_app',
+    'app.ext.login:init_app',
     'app.ext.site:init_app',
 
 ]
