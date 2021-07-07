@@ -84,7 +84,7 @@ def user(username):
 
 @bp.route("/edit-profile", methods=["GET", "POST"])
 def edit_profile():
-    form = EditProfileForm()
+    form = EditProfileForm(current_user.username)
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.about_me = form.about_me.data
@@ -100,7 +100,7 @@ def edit_profile():
     )
 
 
-@app.before_request
+@bp.before_request
 def before_request():
     if current_user.is_authenticated:
         current_user.last_seen = datetime.utcnow
