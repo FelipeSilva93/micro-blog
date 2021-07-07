@@ -1,6 +1,18 @@
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, PasswordField, StringField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
+from wtforms import (
+    BooleanField,
+    PasswordField,
+    StringField,
+    SubmitField,
+    TextAreaField,
+)
+from wtforms.validators import (
+    DataRequired,
+    Email,
+    EqualTo,
+    Lenght,
+    ValidationError,
+)
 
 from app.ext.db import db, models
 
@@ -30,3 +42,9 @@ class RegistrationForm(FlaskForm):
         user = models.User.query.filter_by(email=email.data).first()
         if user is not None:
             raise ValidationError("Please use a different Email")
+
+
+class EditProfileForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    about_me = TextAreaField("About me", validators=[Lenght(min=0, max=140)])
+    submit = SubmitField("Submit")
