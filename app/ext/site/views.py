@@ -1,8 +1,15 @@
+from datetime import datetime
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.urls import url_parse
 
-from app.ext.auth.form import EditProfileForm, LoginForm, RegistrationForm
+from app.ext.auth.form import (
+    EditProfileForm,
+    EmptyForm,
+    LoginForm,
+    RegistrationForm,
+)
 from app.ext.db import db, models
 
 bp = Blueprint("site", __name__)
@@ -71,15 +78,16 @@ def register():
     return render_template("register.html", title="Register", form=form)
 
 
-@bp.route("/login/<username>")
+@bp.route("/user/<username>")
 @login_required
 def user(username):
-    user = models.User.query.filter_by(usernamme=username).first_or_404()
+    user = models.User.query.filter_by(username=username).first_or_404()
     posts = [
         {"author": user, "body": "Test post #01"},
         {"author": user, "body": "Test post #02"},
     ]
-    return render_template("user.html", user=user, posts=posts)
+    form = EmptyForm()
+    return render_template("user.html", user=user, posts=posts, form=form)
 
 
 @bp.route("/edit-profile", methods=["GET", "POST"])
@@ -100,8 +108,48 @@ def edit_profile():
     )
 
 
+@bp.route("/follow/<username>", methods=["POST"])
+@login_required
+def follow(username):
+    form = EmptyForm()
+    if form.validate_on_submit():
+        user = models.User.query.filter_by(username=username).first()
+        if user is None:
+            flash(f"User {username} not found.")
+            return redirect(url_for("site.index"))
+        if user == current_user:
+            flash(f"You cannot follow yourself")
+            return redirect(url_for("site.user", username=username))
+        current_user.follow(user)
+        db.session.commit()
+        flash(f"You are following {username}")
+        return redirect(url_for("site.user", username=username))
+    else:
+        return redirect(url_for("site.index"))
+
+
+@bp.route("/unfollow/<username>", methods=["POST"])
+@login_required
+def unfollow(username):
+    form = EmptyForm()
+    if form.validate_on_submit():
+        user = models.User.query.filter_by(username=username).first()
+        if user is None:
+            flash(f"User {username} not found.")
+            return redirect(url_for("site.index"))
+        if user == current_user:
+            flash(f"You cannot unfollow yourself")
+            return redirect(url_for("site.user", username=username))
+        current_user.unfollow(user)
+        db.session.commit()
+        flash(f"You are not following {username}")
+        return redirect(url_for("site.user", username=username))
+    else:
+        return redirect(url_for("site.index"))
+
+
 @bp.before_request
 def before_request():
     if current_user.is_authenticated:
-        current_user.last_seen = datetime.utcnow
+        current_user.last_seen = datetime.utcnow()
         db.session.commit()
