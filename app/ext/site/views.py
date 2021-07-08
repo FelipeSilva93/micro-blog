@@ -8,6 +8,7 @@ from app.ext.auth.form import (
     EditProfileForm,
     EmptyForm,
     LoginForm,
+    PostForm,
     RegistrationForm,
 )
 from app.ext.db import db, models
@@ -15,27 +16,39 @@ from app.ext.db import db, models
 bp = Blueprint("site", __name__)
 
 
-@bp.route("/")
+@bp.before_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.utcnow()
+        db.session.commit()
+
+
+@bp.route("/", methods=["GET", "POST"])
 @login_required
 def index():
-    title = "Home"
-    user = {"name": "Felipe"}
-    posts = [
-        {
-            "author": {"username": "Felipe"},
-            "body": "Beautiful day in Portland",
-        },
-        {
-            "author": {"username": "Eliza"},
-            "body": "Avengers movie was so cool!",
-        },
-        {
-            "author": {"username": "Matteo"},
-            "body": "I love mom and daddy",
-        },
-    ]
-
-    return render_template("index.html", title=title, posts=posts)
+    form = PostForm()
+    if form.validate_on_submit():
+        post = models.Post(body=form.post.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash("Your post is now live!")
+        return redirect(url_for("site.index"))
+    page = request.args.get("page", 1, type=int)
+    posts = current_user.followed_posts().paginate(page, 3, False)
+    next_url = (
+        url_for("site.index", page=posts.next_num) if posts.has_next else None
+    )
+    prev_url = (
+        url_for("site.index", page=posts.prev_num) if posts.has_prev else None
+    )
+    return render_template(
+        "index.html",
+        title="Home",
+        posts=posts.items,
+        form=form,
+        next_url=next_url,
+        prev_url=prev_url,
+    )
 
 
 @bp.route("/login", methods=["GET", "POST"])
@@ -82,12 +95,29 @@ def register():
 @login_required
 def user(username):
     user = models.User.query.filter_by(username=username).first_or_404()
-    posts = [
-        {"author": user, "body": "Test post #01"},
-        {"author": user, "body": "Test post #02"},
-    ]
+    page = request.args.get("page", 1, type=int)
+    posts = user.posts.order_by(models.Post.timestamp.desc()).paginate(
+        page, 3, False
+    )
+    next_url = (
+        url_for("site.user", username=user.username, page=posts.next_num)
+        if posts.has_next
+        else None
+    )
+    prev_url = (
+        url_for("site.user", username=user.username, page=posts.prev_num)
+        if posts.has_prev
+        else None
+    )
     form = EmptyForm()
-    return render_template("user.html", user=user, posts=posts, form=form)
+    return render_template(
+        "user.html",
+        user=user,
+        posts=posts.items,
+        next_url=next_url,
+        prev_url=prev_url,
+        form=form,
+    )
 
 
 @bp.route("/edit-profile", methods=["GET", "POST"])
@@ -148,8 +178,21 @@ def unfollow(username):
         return redirect(url_for("site.index"))
 
 
-@bp.before_request
-def before_request():
-    if current_user.is_authenticated:
-        current_user.last_seen = datetime.utcnow()
-        db.session.commit()
+@bp.route("/explore")
+@login_required
+def explore():
+    page = request.args.get("page", 1, type=int)
+    posts = current_user.followed_posts().paginate(page, 3, False)
+    next_url = (
+        url_for("site.index", page=posts.next_num) if posts.has_next else None
+    )
+    prev_url = (
+        url_for("site.index", page=posts.prev_num) if posts.has_prev else None
+    )
+    return render_template(
+        "index.html",
+        title="Explore",
+        posts=posts.items,
+        next_url=next_url,
+        prev_url=prev_url,
+    )
