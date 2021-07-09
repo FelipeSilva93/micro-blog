@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'app.ext.login:init_app',
     'app.ext.site:init_app',
     'app.ext.log:init_app',
+    'app.ext.bootstrap:init_app',
 ]
 POST_PER_PAGE = 3
 
