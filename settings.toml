@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'app.ext.site:init_app',
     'app.ext.log:init_app',
     'app.ext.bootstrap:init_app',
+    'app.ext.flask_moment:init_app',
 ]
 POST_PER_PAGE = 3
 
